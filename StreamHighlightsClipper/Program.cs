@@ -96,9 +96,34 @@ namespace StreamHighlightsClipper
         {
             var config = File.ReadLines("config.txt").ToArray();
             _streamHighlightData = File.ReadAllText("stream_highlights.txt");
-            _sourceFolder = Directory.GetCurrentDirectory() + @"\" + config[0];
-            _resultFolder = Directory.GetCurrentDirectory() + @"\" + config[1];
-            _mffpegFolderLoc = Directory.GetCurrentDirectory() + @"\" + config[2];
+
+            if (config[0].Contains(":"))
+            {
+                _sourceFolder = config[0];
+            }
+            else
+            {
+                _sourceFolder = Directory.GetCurrentDirectory() + @"\" + config[0];
+            }
+
+            if (config[1].Contains(":"))
+            {
+                _resultFolder = config[1];
+            }
+            else
+            {
+                _resultFolder = Directory.GetCurrentDirectory() + @"\" + config[1];
+            }
+
+            if (config[2].Contains(":"))
+            {
+                _mffpegFolderLoc = config[1];
+            }
+            else
+            {
+                _mffpegFolderLoc = Directory.GetCurrentDirectory() + @"\" + config[2];
+            }
+
             Console.WriteLine(_mffpegFolderLoc);
         }
 
@@ -117,11 +142,11 @@ namespace StreamHighlightsClipper
             if (highlightMatches.Count == 0) return;
             var buffer = new TimeSpan(0, 0, BUFFER, 0);
             var folderName = "Highlights-" + videoName;
-            var resultFolder = $"{_resultFolder}{folderName}";
+            var resultFolder = $"\"{_resultFolder}{folderName}\"";
             var videoEndDateTime = DateTime.ParseExact(videoName, "yyyy-MM-dd_HH-mm-ss", null);
             var videoStartDateTime = videoEndDateTime.Subtract(file.Metadata.Duration);
             var videoFormat = ".mp4";
-            var videoSource = $"{_sourceFolder}{videoName}{videoFormat}";
+            var videoSource = $"\"{_sourceFolder}{videoName}{videoFormat}\"";
             
             Directory.CreateDirectory(resultFolder);
             for (var i = 0; i < highlightMatches.Count; i++)
@@ -131,7 +156,8 @@ namespace StreamHighlightsClipper
                 if ((highlightTimestamp <= videoStartDateTime) || (highlightTimestamp >= videoEndDateTime)) continue;
                 var highlightTitle = string.IsNullOrEmpty(highlightMatch.Groups[3].ToString()) ? "NoTitle" : highlightMatch.Groups[3].ToString();
                 highlightTitle = Regex.Replace(highlightTitle, " ", "_");
-                var highlightName = highlightTimestamp.ToString("yyyy-dd-MM_HH-mm-ss") + highlightTitle + i;
+                highlightTitle = Regex.Replace(highlightTitle, @"[~""#%&*:<>?/\\{|}]+", "");
+                var highlightName = highlightTimestamp.ToString("yyyy-MM-dd_HH-mm-ss") + highlightTitle + i;
                 var highlightTimeSpan = highlightTimestamp.Subtract(videoStartDateTime);
                 var highlightStart = highlightTimeSpan.Subtract(buffer).ToString();
                 var highlightEnd = highlightTimeSpan.Add(buffer).ToString();
