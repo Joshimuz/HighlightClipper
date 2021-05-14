@@ -142,11 +142,11 @@ namespace StreamHighlightsClipper
             if (highlightMatches.Count == 0) return;
             var buffer = new TimeSpan(0, 0, BUFFER, 0);
             var folderName = "Highlights-" + videoName;
-            var resultFolder = $"\"{_resultFolder}{folderName}\"";
+            var resultFolder = $"{_resultFolder}{folderName}";
             var videoEndDateTime = DateTime.ParseExact(videoName, "yyyy-MM-dd_HH-mm-ss", null);
             var videoStartDateTime = videoEndDateTime.Subtract(file.Metadata.Duration);
             var videoFormat = ".mp4";
-            var videoSource = $"\"{_sourceFolder}{videoName}{videoFormat}\"";
+            var videoSource = $"{_sourceFolder}{videoName}{videoFormat}";
             
             Directory.CreateDirectory(resultFolder);
             for (var i = 0; i < highlightMatches.Count; i++)
@@ -162,7 +162,7 @@ namespace StreamHighlightsClipper
                 var highlightStart = highlightTimeSpan.Subtract(buffer).ToString();
                 var highlightEnd = highlightTimeSpan.Add(buffer).ToString();
                 var videoOutput = $@"{resultFolder}\{highlightName}{videoFormat}";
-                var arguments = $"-n -ss {highlightStart} -to {highlightEnd} -i {videoSource} -map 0 -c copy -start_at_zero -avoid_negative_ts 1 -async 1 {videoOutput} ";
+                var arguments = $"-n -ss {highlightStart} -to {highlightEnd} -i \"{videoSource}\" -map 0 -c copy -start_at_zero -avoid_negative_ts 1 -async 1 \"{videoOutput}\" ";
                 try
                 {                
                     var startInfo = new ProcessStartInfo
