@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using MediaToolkit;
-using MediaToolkit.Model; 
+using MediaToolkit.Model;
 
 namespace StreamHighlightsClipper
 {
@@ -17,10 +17,16 @@ namespace StreamHighlightsClipper
         private static string _mffpegFolderLoc = "";
         private static string _streamHighlightData = "";
 
+        private static int mode;
+
         public static void Main(string[] args)
         {
             LoadConfig();
             Files = GetFiles(_sourceFolder);
+            mode = GetIndexSelection("Please select an option:\n" +
+                                          "0: Wayno mode, using IRL time in name of video and IRL timestamp in Highlight\n" +
+                                          "1: Josh mode, using Chatty's guess at video timestamp in the Highlight\n", 2);
+
             var index = GetIndexSelection("Please select an option:\n" +
                                           "0: Create highlights of all vods in folder\n" +
                                           "1: Select a specific vod to create highlights from\n"
@@ -158,7 +164,18 @@ namespace StreamHighlightsClipper
                 highlightTitle = Regex.Replace(highlightTitle, " ", "_");
                 highlightTitle = Regex.Replace(highlightTitle, @"[~""#%&*:<>?/\\{|}]+", "");
                 var highlightName = highlightTimestamp.ToString("yyyy-MM-dd_HH-mm-ss") + highlightTitle + i;
-                var highlightTimeSpan = highlightTimestamp.Subtract(videoStartDateTime);
+
+                TimeSpan highlightTimeSpan;
+                if (mode == 0)
+                {
+                    
+                    highlightTimeSpan = highlightTimestamp.Subtract(videoStartDateTime);
+                }
+                else
+                {
+                    highlightTimeSpan = TimeSpan.Parse(highlightMatch.ToString().Split('[')[1].Split(']')[0].Replace("h ", ":").Replace("m ", ":").Replace("s", ""));
+                }
+
                 var highlightStart = highlightTimeSpan.Subtract(buffer).ToString();
                 var highlightEnd = highlightTimeSpan.Add(buffer).ToString();
                 var videoOutput = $@"{resultFolder}\{highlightName}{videoFormat}";
